@@ -1,0 +1,4 @@
+- name: Deploy Observability Master
+  hosts: observability_master
+  roles:
+    - observability_master

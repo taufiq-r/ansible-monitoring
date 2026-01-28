@@ -1,0 +1,44 @@
+- name: Create base directory
+  become: true
+  file:
+    path: "{{ observability_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy observability stack
+  become: true
+  copy:
+    src: sea-observability/
+    dest: "{{ observability_path }}/"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Validate docker compose file (master only)
+  become: true
+  command: docker compose config
+  args:
+    chdir: "{{ observability_path }}/ec2-target"
+
+
+- name: Pull docker images (master only)
+  become: true
+  command: docker compose pull
+  args:
+    chdir: "{{ observability_path }}/ec2-target"
+  register: pull_result
+  failed_when: false
+
+- debug:
+    msg: "{{ pull docker image failed, continuing to start stack from local images }}"
+  when: pull_result.rc != 0 
+
+
+- name: Start observability stack (master only)
+  become: true
+  command: docker compose up -d
+  args:
+    chdir: "{{ observability_path }}/ec2-target"
+
+
+

@@ -1,0 +1,3 @@
+[submodule "roles/observability_master/files/sea-observability"]
+	path = roles/observability_master/files/sea-observability
+	url = git@github.com:betuah/sea-observability.git

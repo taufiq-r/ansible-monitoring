@@ -1,0 +1,5 @@
+- name: Deploy Observability Agent
+  hosts: observability_agent
+  roles:
+    - observability_agent
+

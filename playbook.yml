@@ -1,0 +1,5 @@
+- name: Deploy SEA Observability
+  hosts: all
+  become: true
+  roles:
+    - sea-observability

@@ -1,0 +1,21 @@
+- name: Create agent directory
+  become: true
+  file:
+    path: "{{ agent_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy agent docker compose
+  become: true
+  copy:
+    src: agent-compose/
+    dest: "{{ agent_path }}/"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Start agent containers
+  become: true
+  command: docker compose up -d
+  args:
+    chdir: "{{ agent_path }}"
