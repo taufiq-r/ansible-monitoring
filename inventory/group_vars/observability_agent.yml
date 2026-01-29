@@ -1,1 +1,2 @@
+agent_path: /opt/sea-observability-agent
 node_role: agent

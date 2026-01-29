@@ -19,3 +19,31 @@
   command: docker compose up -d
   args:
     chdir: "{{ agent_path }}"
+
+- name: Healthcheck cAdvisor
+  uri:
+    url: http://localhost:8080/healthz
+    status_code: 200
+  register: cadvisor_health
+  retries: 10
+  delay: 3
+  until: cadvisor_health.status == 200
+
+# - name: Healthcheck redis
+#   uri:
+#     url: http://localhost:6379
+#     status_code: 200
+#   register: redis_health
+#   retries: 10
+#   delay: 3
+#   until: redis_health.status == 200
+
+- name: Healthcheck prometail
+  uri:
+    url: http://localhost:9080/ready
+    status_code: 200
+  register: promtail_health
+  retries: 10
+  delay: 3
+  until: promtail_health.status == 200
+

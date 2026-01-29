@@ -40,5 +40,35 @@
   args:
     chdir: "{{ observability_path }}/ec2-target"
 
+- name: Healthcheck Prometheus
+  uri:
+    url: http://localhost:9090/-/healthy
+    status_code: 200
+  register: prometheus_health
+  retries: 10
+  delay: 3
+  until: prometheus_health.status == 200
+
+- name: Healthcheck Grafana
+  uri:
+    url: htttp://localhost:3000/api/health
+    status_code: 200
+  register: grafana_health
+  retries: 10
+  delay: 3
+  until: grafana_health.status == 200
+
+- name: Healthcheck Loki
+  uri:
+    url: http://localhost:3100/ready
+    status_code: 200
+  register: loki_health
+  retries: 10
+  delay: 3
+  until: loki_health.status == 200
+
+
+
+
 
 
