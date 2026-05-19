@@ -5,6 +5,24 @@
     state: directory
     mode: '0755'
 
+- name: Copy installation script
+  become: true
+  copy:
+    src: installer_agent.sh
+    dest: "{{ agent_path }}/installer_agent.sh"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Run installation script
+  become: true
+  command: bash installer_agent.sh
+  #shell: bash installer_agent.sh 4
+  args:
+    chdir: "{{ agent_path }}"
+
+
+
 - name: Copy agent docker compose
   become: true
   copy:
