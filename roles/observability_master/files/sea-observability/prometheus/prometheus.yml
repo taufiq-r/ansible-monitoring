@@ -1,0 +1,347 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: monitoring-prod
+    replica: prometheus-1
+rule_files:
+  - /etc/prometheus/alert_rules.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['172.16.0.182:9093']
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+        - targets: ["172.16.0.182:9090"]
+
+#monitoring process
+  - job_name: "process-exporter-target"
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          -  "172.16.0.182:9256" #"192.168.1.36:9256"
+        #-  "192.168.50.199:9256"
+        labels:
+          server: "seamolec official"
+  - job_name: "process-exporter-test"
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+        - "192.168.51.214:9256"
+
+#server monitoring 
+  - job_name: "node-Official SIte"
+    scrape_interval: 5s
+    static_configs:
+      - targets:  ["172.16.0.182:9100"] #["192.168.1.36:9100"]  
+        labels:
+          server_role: "target official site"
+          environment: "development"
+          server: "Official Site"
+  - job_name: "laptop test" #"node ec2-grafana"
+    static_configs:
+      - targets: ["192.168.51.214:9100"] #["10.100.0.2:9100"]
+        labels:
+          server_role: "target test debian laptop" #"target ec2grafana"
+          environment: "production"
+          server: "Debian Laptop" #"EC2-Grafana"
+  #- job_name: "node ec2-prometheus"
+   # static_configs:
+     # - targets: ["10.100.0.1:9100"]
+       # labels:
+         # server_role: "target ec2prometheus"
+          #environment: "production"
+          #server: "EC2-Prometheus"
+  - job_name: "cadvisor-Official-site"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["172.16.0.182:8080"]
+        labels:
+          server: "Official Site"
+  - job_name: "cadvisor laptop" #"cadvisor-ec2-prometheus"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ["192.168.51.214:8080"] #["10.100.0.1:8080"]
+        labels:
+          server: "Laptop" #"EC2-Prometheus"
+
+  - job_name: "blackbox-http"
+    metrics_path: /probe
+    params:
+       module: [http_2xx]
+    static_configs:
+      - targets:
+          #- "https://seamolec.org/"
+          #- "https://maganghub.kemnaker.go.id"
+          #- "https://siapkerja.kemnaker.go.id/app/home"
+        #labels:
+         # vlan: "internet"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "172.16.0.182:9115"
+
+  - job_name: "blackbox-ap"
+    metrics_path: /probe
+    params:
+      module: [ping]
+    static_configs:
+      -  targets:
+           - "192.168.15.99"
+         labels:
+           ap: "UAP-R.KELAS_LT1"
+           location: "Discovery Room"
+           probe_type: "ping"
+      - targets:
+          - "192.168.15.36"
+        labels:
+          ap: "UAP-R.KELAS_LT2"
+          location: "Learning Node lt2"
+          probe_type: "ping"
+      - targets:
+          - "192.168.51.248"
+        labels:
+          ap: "UAP-SAMPING_TANGGA_LT2"
+          location: "Tangga Lt2"
+          probe_type: "ping"
+      - targets:
+          - "192.168.51.241"
+        labels:
+          ap: "UAP-R.STAFF_LT2_TENGAH"
+          location: "Tengah Ruangan OPSHUB"
+          probe_type: "ping"
+      - targets:
+          - "192.168.50.253"
+        labels:
+          ap: "UAP-R.STAFF_LT2_POJOK"
+          location: "Pojok Ruangan Atas Kulkas"
+          probe_type: "ping"
+      - targets:
+          - "192.168.30.73"
+        labels:
+          ap: "UAP-R.ADMIN_LT3"
+          location: "Ruang Admin"
+          probe_type: "ping"
+      - targets:
+          - "192.168.35.252"
+        labels:
+          ap: "UAP-R.CONFERENCE_PRIMARY"
+          location: "Ruang ODL dekat Pintu Masuk"
+          probe_type: "ping"
+      - targets:
+          - "192.168.35.143"
+        labels:
+          ap: "UAP-R.CONFERENCE_SECONDARY"
+          location: "Ruang ODL dekat pintu Gudang"
+          probe_type: "ping"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "172.16.0.182:9115"
+
+  - job_name: "blackbox-vlan"
+    metrics_path: /probe
+    params:
+       module: [ping]
+    static_configs:
+      # gateway IP per VLAN 
+      - targets:
+          - "192.168.10.254"
+        labels:
+          vlan: "VLAN_10"
+          location: "LAN LANTAI 1"
+          probe_type: "ping"
+      - targets:
+          - "192.168.20.254"
+        labels:
+          vlan: "VLAN_20" 
+          location: "LAN LANTAI 2"
+          probe_type: "ping"
+      - targets:
+          - "192.168.30.254"
+        labels:
+          vlan: "VLAN_30"
+          location: "LAN LANTAI 3"
+          probe_type: "ping"
+      - targets:
+          - "192.168.40.254"
+        labels:
+          vlan: "VLAN_40"
+          location: "LAN RUANG IT"
+          probe_type: "ping"
+      - targets:
+          - "192.168.51.254"
+        labels:
+          vlan: "VLAN_51"
+          location: "WLAN"
+          probe_type: "ping"
+      - targets:
+          - "192.168.15.254"
+        labels:
+          vlan: "WLAN/LAN"
+          location: "Ruang Kelas Lt1 dan 2"
+          probe_type: "ping"
+      - targets: 
+          - "192.168.25.254"
+        labels:
+          vlan: "VLAN25"
+          location: "RUANG LAB KOMPUTER"
+          probe_type: "ping"
+      - targets:
+          - "192.168.35.254"
+        labels:
+          vlan: "VLAN35"
+          location: "RUANG ODL HUB"
+          probe_type: "ping"
+      - targets:
+          - "118.98.214.129"
+        labels:
+          vlan: "VLAN_100"
+          location: "VLAN PUSDATIN"
+          probe_type: "ping"
+      - targets:
+          - "192.168.99.254"
+        labels:
+          vlan: "VLAN99"
+          location: "MANAGEMENT VLAN"
+          probe_type: "ping"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "172.16.0.182:9115"
+
+
+  - job_name: 'snmp-mikrotik-module: if'
+    scrape_interval: 60s
+    scrape_timeout: 30s
+    static_configs:
+      - targets:
+        - 192.168.51.131  # IP SNMP device.
+        #- switch.local # SNMP device.
+        #- tcp://192.168.1.3:1161  # SNMP device using TCP transport and custom port.
+    metrics_path: /snmp
+    params:
+      auth: [public_v2]
+      module: [if_mib]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 172.16.0.182:9116  # The SNMP exporter's real hostname:port.
+
+  - job_name: 'snmp-mikrotik-system'
+    scrape_interval: 2m
+    scrape_timeout: 90s
+    metrics_path: /snmp
+    params:
+      auth: [public_v2]
+      module: [mikrotik]
+    static_configs:
+      - targets:
+          - 192.168.51.131
+        #labels:
+        #device: mikrotik-core
+        #site: hq
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: 172.16.0.182:9116
+
+  - job_name: 'snmp-mikrotik-hr'
+    scrape_interval: 2m
+    scrape_timeout: 90s
+    metrics_path: /snmp
+    params:
+      auth: [public_v2]
+      module: [hrSystem]
+    static_configs:
+      - targets:
+          - 192.168.51.131
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__address__]
+        target_label: instance
+      - target_label: __address__
+        replacement: 172.16.0.182:9116
+  relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "172.16.0.182:9115"
+  - job_name: 'snmp-unify'
+    scrape_interval: 2m
+    scrape_timeout: 90s
+    metrics_path: /snmp
+    params:
+      auth: [public_v2]
+      module: [ubiquiti_unifi]
+    static_configs:
+      - targets: ["192.168.15.99"]
+        labels:
+          ap: "UAP_R.KELAS_LT1"
+          location: "Discovery Room LT 1"
+    ##############################################
+      - targets: ["192.168.15.36"]
+        labels:
+          ap: "UAP_R.KELAS_LT2"
+          location: "Learning Node LT 2"
+      - targets: ["192.168.51.248"]
+        labels:
+          ap: "UAP_SAMPING TANGGA LT2"
+          location: "Tangga LT 2"
+      - targets: ["192.168.51.241"]
+        labels:
+          ap: "UAP_R.STAFF_LT2_TENGAH"
+          location: "Tengah Ruangan OPSHUB"
+      - targets: ["192.168.50.253"]
+        labels:
+          ap: "UAP_R.STAFF_LT2_POJOK"
+          location: "Pojok Ruangan OPSHUB Atas Kulkas"
+      - targets: ["192.168.30.73"]
+        labels:
+          ap: "UAP_R.ADMIN_LT3"
+          location: "Ruang Admin"
+      - targets: ["192.168.35.252"]
+        labels:
+          ap: "UAP_R.CONFERENCE_PRIMARY"
+          location: "Ruang ODL dekat Pintu Masuk"
+      - targets: ["192.168.35.143"]
+        labels:
+          ap: "UAP_R.CONFERENCE_SECONDARY"
+          location: "Ruang ODL dekat pintu Gudang"
+      - targets: ["192.168.51.1"]
+        labels:
+          ap: "UAP_R.LIBRARY LT1"
+          location: "Knowledge Hub / Library"
+
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: "172.16.0.182:9116"
+ # Global exporter-level metrics
+  #- job_name: 'snmp_exporter'
+    #static_configs:
+      #- targets: ['snmp_exporter:9116']

@@ -1,0 +1,10 @@
+grafana/data
+prometheus/data
+uptime-kuma
+var/log/
+*.log
+data/
+.env
+*.env
+*.pem
+*.key

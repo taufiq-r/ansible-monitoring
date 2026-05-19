@@ -1,0 +1,53 @@
+global:
+  resolve_timeout: 5m
+
+# Template untuk format alert (opsional)
+templates:
+  - '/etc/alertmanager/template/*.tmpl'
+
+# Routing utama
+route:
+  receiver: 'discord-webhook'  # Default receiver untuk semua alert
+  group_by: ['alertname', 'instance', 'severity']
+  group_wait: 10s       # Tunggu 10 detik untuk grouping
+  group_interval: 10s   # Interval antar group
+  repeat_interval: 30m  # Kirim ulang setiap 30 menit jika masih firing
+  
+  # Child routes untuk routing spesifik
+  routes:
+    # Critical alerts - kirim dengan prioritas tinggi
+    - matchers:
+        - severity="critical"
+      receiver: 'discord-webhook'
+      group_wait: 5s
+      repeat_interval: 15m
+      continue: true  # Lanjutkan ke route berikutnya juga
+    
+    # Warning alerts - kirim dengan interval lebih jarang
+    - matchers:
+        - severity="warning"
+      receiver: 'discord-webhook'
+      repeat_interval: 1h
+      continue: true
+    
+    # Info alerts - kirim dengan interval sangat jarang
+    - matchers:
+        - severity="info"
+      receiver: 'discord-webhook'
+      repeat_interval: 4h
+      continue: true
+
+# Inhibition rules: jangan kirim warning jika ada critical dengan alert yang sama
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: ['alertname', 'instance']
+
+# Receivers
+receivers:
+  - name: 'discord-webhook'
+    webhook_configs:
+      - url: 'http://incident-webhook:5000/alert'
+        send_resolved: true  # Kirim notifikasi saat alert resolved
